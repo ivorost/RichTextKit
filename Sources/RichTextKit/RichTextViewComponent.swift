@@ -72,6 +72,15 @@ public protocol RichTextViewComponent: AnyObject,
      */
     var typingAttributes: RichTextAttributes { get set }
 
+    /**
+     The text view cursor color
+     */
+    var cursorColor: ColorRepresentable { get set }
+
+    /**
+     The text view scroller knob color
+     */
+    var verticalScrollerColor: ColorRepresentable? { get set }
 
     // MARK: - Setup
 

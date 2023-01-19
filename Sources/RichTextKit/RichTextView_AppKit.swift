@@ -28,6 +28,22 @@ open class RichTextView: NSTextView, RichTextViewComponent {
     public var highlightingStyle: RichTextHighlightingStyle = .standard
 
     /**
+     The text view cursor color
+     */
+    public var cursorColor: ColorRepresentable {
+        get { insertionPointColor }
+        set { insertionPointColor = newValue }
+    }
+
+    /**
+     The text view scroller knob color
+     */
+    public var verticalScrollerColor: ColorRepresentable? {
+        get { enclosingScrollView?.verticalScrollerKnobColor }
+        set { enclosingScrollView?.verticalScrollerKnobColor = newValue }
+    }
+
+    /**
      The image configuration to use by the rich text view.
 
      The view uses the ``RichTextImageConfiguration/disabled``
@@ -79,15 +95,12 @@ open class RichTextView: NSTextView, RichTextViewComponent {
         with text: NSAttributedString,
         format: RichTextDataFormat
     ) {
-        attributedString = .empty
-        setupInitialFontSize()
         attributedString = text
         allowsImageEditing = true
         allowsUndo = true
         backgroundColor = .clear
         imageConfiguration = standardImageConfiguration(for: format)
         layoutManager?.defaultAttachmentScaling = NSImageScaling.scaleProportionallyDown
-        textColor = .textColor
         setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     }
 
