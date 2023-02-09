@@ -59,19 +59,14 @@ public struct RichTextEditor: ViewRepresentable {
     public let textView = RichTextView()
     #endif
 
-    #if os(macOS)
-    public let scrollView = RichTextView.scrollableTextView()
-
-    public var textView: RichTextView {
-        scrollView.documentView as? RichTextView ?? RichTextView()
-    }
-    #endif
-
-
     public func makeCoordinator() -> RichTextCoordinator {
-        RichTextCoordinator(
+        let scrollView = RichTextView.scrollableTextView()
+        let textView = scrollView.documentView as? RichTextView ?? RichTextView()
+
+        return RichTextCoordinator(
             text: text,
             textView: textView,
+            containerView: scrollView,
             richTextContext: richTextContext
         )
     }
@@ -89,28 +84,14 @@ public struct RichTextEditor: ViewRepresentable {
 
     #if os(macOS)
     public func makeNSView(context: Context) -> some NSView {
-        textView.setup(with: text.wrappedValue, format: format)
-        viewConfiguration(textView)
-        return scrollView
+        context.coordinator.textView.setup(with: text.wrappedValue, format: format)
+        viewConfiguration(context.coordinator.textView)
+        return context.coordinator.containerView
     }
 
     public func updateNSView(_ view: NSViewType, context: Context) {}
     #endif
 }
-
-
-// MARK: RichTextPresenter
-
-public extension RichTextEditor {
-
-    /**
-     Get the currently selected range.
-     */
-    var selectedRange: NSRange {
-        textView.selectedRange
-    }
-}
-
 
 // MARK: RichTextReader
 
@@ -121,19 +102,6 @@ public extension RichTextEditor {
      */
     var attributedString: NSAttributedString {
         text.wrappedValue
-    }
-}
-
-
-// MARK: RichTextWriter
-
-public extension RichTextEditor {
-
-    /**
-     Get the mutable rich text that is managed by the editor.
-     */
-    var mutableAttributedString: NSMutableAttributedString? {
-        textView.mutableAttributedString
     }
 }
 

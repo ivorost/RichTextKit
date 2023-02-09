@@ -23,11 +23,14 @@ import SwiftUI
  */
 public class RichTextContext: ObservableObject {
 
+    private(set) var namedStyles = [RichTextNamedStyle.Proto]()
+    private(set) var commandHandlers = [RichTextCommand.Proto]()
+
     /**
      Create a new rich text context.
      */
-    public init() {}
-
+    public init() {
+    }
 
     /**
      The currently selected range, if any.
@@ -48,6 +51,11 @@ public class RichTextContext: ObservableObject {
     @Published
     var selectedRangeChange = NSRange()
 
+    /**
+     Attributed content
+     */
+    @Published
+    public var content = NSAttributedString()
 
     /**
      The current background color, if any.
@@ -174,6 +182,12 @@ public class RichTextContext: ObservableObject {
      */
     @Published
     public var textAlignment: RichTextAlignment = .left
+
+    /**
+     The current named style if any
+     */
+    @Published
+    public var namedStyle: RichTextNamedStyle.Proto?
 }
 
 public extension RichTextContext {
@@ -208,7 +222,7 @@ public extension RichTextContext {
      Decrement the current font size.
 
      - Parameters:
-       - points: The number of points to decrement the font size.
+     - points: The number of points to decrement the font size.
      */
     func decrementFontSize(points: UInt) {
         stepFontSize(points: -Int(points))
@@ -244,7 +258,7 @@ public extension RichTextContext {
      Increment the current font size.
 
      - Parameters:
-       - points: The number of points to increment the font size.
+     - points: The number of points to increment the font size.
      */
     func incrementFontSize(points: UInt) {
         stepFontSize(points: Int(points))
@@ -254,9 +268,9 @@ public extension RichTextContext {
      Paste an image into the text view, at a certain index.
 
      - Parameters:
-       - image: The image to paste.
-       - index: The index to paste at.
-       - moveCursorToPastedContent: Whether or not to move the cursor to the end of the pasted content, by default `false`.
+     - image: The image to paste.
+     - index: The index to paste at.
+     - moveCursorToPastedContent: Whether or not to move the cursor to the end of the pasted content, by default `false`.
      */
     func pasteImage(
         _ image: ImageRepresentable,
@@ -270,9 +284,9 @@ public extension RichTextContext {
      Paste images into the text view, at a certain index.
 
      - Parameters:
-       - images: The images to paste.
-       - index: The index to paste at.
-       - moveCursorToPastedContent: Whether or not to move the cursor to the end of the pasted content, by default `false`.
+     - images: The images to paste.
+     - index: The index to paste at.
+     - moveCursorToPastedContent: Whether or not to move the cursor to the end of the pasted content, by default `false`.
      */
     func pasteImage(
         _ images: [ImageRepresentable],
@@ -286,9 +300,9 @@ public extension RichTextContext {
      Paste text into the text view, at a certain index.
 
      - Parameters:
-       - text: The text to paste.
-       - index: The index to paste at.
-       - moveCursorToPastedContent: Whether or not to move the cursor to the end of the pasted content, by default `false`.
+     - text: The text to paste.
+     - index: The index to paste at.
+     - moveCursorToPastedContent: Whether or not to move the cursor to the end of the pasted content, by default `false`.
      */
     func pasteText(
         _ text: String,
@@ -323,7 +337,7 @@ public extension RichTextContext {
      Set ``selectedRange`` to a new range and start editing.
 
      - Parameters:
-       - range: The range to select.
+     - range: The range to select.
      */
     func selectRange(_ range: NSRange) {
         isEditingText = true
@@ -334,7 +348,7 @@ public extension RichTextContext {
      Step the current font size a certain number of points.
 
      - Parameters:
-       - points: The number of points to increase or decrease the font size.
+     - points: The number of points to increase or decrease the font size.
      */
     func stepFontSize(points: Int) {
         fontSize += CGFloat(points)
@@ -371,5 +385,27 @@ public extension RichTextContext {
      */
     func undoLatestChange() {
         shouldUndoLatestChange = true
+    }
+
+    /**
+     Register named style
+     */
+
+    func apply(_ namedStyle: RichTextNamedStyle.Proto) {
+        
+    }
+
+    /**
+     Register named style
+     */
+    func register(_ namedStyle: RichTextNamedStyle.Proto) {
+        namedStyles.append(namedStyle)
+    }
+
+    /**
+     Register command handled
+     */
+    func register(_ command: RichTextCommand.Proto) {
+        commandHandlers.append(command)
     }
 }

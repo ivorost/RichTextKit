@@ -12,6 +12,7 @@ public extension RichTextCoordinator {
         self.init(
             text: text,
             textView: textView,
+            containerView: textView,
             richTextContext: context)
     }
 

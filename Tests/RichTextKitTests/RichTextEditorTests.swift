@@ -32,13 +32,12 @@ class RichTextEditorTests: XCTestCase {
     func testRichTextPresenterUsesContextSelectedRange() {
         let range = NSRange(location: 4, length: 3)
         context.selectRange(range)
-        XCTAssertEqual(editor.selectedRange, range)
+        XCTAssertEqual(coordinator.textView.selectedRange, range)
     }
 
     func testCoordinatorReturnsCorrectlyConfiguredInstance() {
         let coordinator = editor.makeCoordinator()
         XCTAssertEqual(coordinator.text.wrappedValue.string, text.string)
-        XCTAssertTrue(coordinator.textView === editor.textView)
         XCTAssertTrue(coordinator.richTextContext === context)
     }
 }

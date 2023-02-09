@@ -42,12 +42,14 @@ private extension NSAttributedString {
        - data: The data to initalize the string with.
      */
     convenience init(archivedData data: Data) throws {
-        let unarchived = try NSKeyedUnarchiver.unarchivedObject(
-            ofClass: NSAttributedString.self,
-            from: data)
+        let unarchiver = try NSKeyedArchiver.richTextEditor(decoding: data)
+        let unarchived = unarchiver.decodeObject() as? NSAttributedString
+        unarchiver.finishDecoding()
+
         guard let string = unarchived else {
             throw RichTextDataError.invalidArchivedData(in: data)
         }
+        
         self.init(attributedString: string)
     }
 
@@ -121,4 +123,13 @@ private extension NSAttributedString {
         [.documentType: NSAttributedString.DocumentType.docFormat]
     }
     #endif
+}
+
+
+private extension NSKeyedArchiver {
+    static func richTextEditor(decoding data: Data) throws -> NSKeyedUnarchiver {
+        let result = try NSKeyedUnarchiver(forReadingFrom: data)
+        result.requiresSecureCoding = false
+        return result
+    }
 }

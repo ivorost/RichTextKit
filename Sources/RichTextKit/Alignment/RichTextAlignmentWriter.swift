@@ -97,7 +97,7 @@ private extension RichTextAlignmentWriter {
         var index = text.findIndexOfCurrentParagraph(from: ulocation)
         setRichTextAlignment(alignment, atIndex: index)
         repeat {
-            let newIndex = text.findIndexOfNextParagraph(from: index)
+            let newIndex = text.findIndexOfNextParagraphOrCurrent(from: index)
             if newIndex > index && newIndex < (location + length) {
                 setRichTextAlignment(alignment, atIndex: newIndex)
             } else {

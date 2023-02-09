@@ -28,6 +28,7 @@ class RichTextCoordinatorTests: XCTestCase {
         coordinator = RichTextCoordinator(
             text: textBinding,
             textView: view,
+            containerView: view,
             richTextContext: context)
         coordinator.shouldDelaySyncContextWithTextView = false
         view.selectedRange = NSRange(location: 0, length: 1)

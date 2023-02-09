@@ -57,9 +57,10 @@ private extension RichTextDataReader {
      Generate ``RichTextDataFormat/archivedData`` formatted data.
      */
     func richTextArchivedData() throws -> Data {
-        try NSKeyedArchiver.archivedData(
-            withRootObject: richText,
-            requiringSecureCoding: false)
+        let archiver = NSKeyedArchiver(requiringSecureCoding: false)
+        archiver.encodeRootObject(richText)
+        archiver.finishEncoding()
+        return archiver.encodedData
     }
 
     /**

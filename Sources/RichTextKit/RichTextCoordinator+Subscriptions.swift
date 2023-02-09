@@ -15,6 +15,7 @@ extension RichTextCoordinator {
      Make the coordinator subscribe to context changes.
      */
     func subscribeToContextChanges() {
+        subscribeToContent()
         subscribeToAlignment()
         subscribeToBackgroundColor()
         subscribeToFontName()
@@ -34,13 +35,24 @@ extension RichTextCoordinator {
         subscribeToShouldPasteText()
         subscribeToShouldRedoLatestChange()
         subscribeToShouldUndoLatestChange()
+        subscribeToNamedStyle()
     }
 }
 
 private extension RichTextCoordinator {
 
+    func subscribeToContent() {
+        richTextContext.$content
+            .filter { [weak self] _ in return self?.syncingContext != true }
+            .sink(
+                receiveCompletion: { _ in },
+                receiveValue: { [weak self] in self?.setContent($0) })
+            .store(in: &cancellables)
+    }
+
     func subscribeToAlignment() {
         richTextContext.$textAlignment
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setAlignment(to: $0) })
@@ -49,6 +61,7 @@ private extension RichTextCoordinator {
 
     func subscribeToBackgroundColor() {
         richTextContext.$backgroundColor
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setBackgroundColor(to: $0) })
@@ -57,6 +70,7 @@ private extension RichTextCoordinator {
 
     func subscribeToFontName() {
         richTextContext.$fontName
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setFontName(to: $0) })
@@ -65,6 +79,7 @@ private extension RichTextCoordinator {
 
     func subscribeToFontSize() {
         richTextContext.$fontSize
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setFontSize(to: $0) })
@@ -73,6 +88,7 @@ private extension RichTextCoordinator {
 
     func subscribeToForegroundColor() {
         richTextContext.$foregroundColor
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setForegroundColor(to: $0) })
@@ -81,6 +97,7 @@ private extension RichTextCoordinator {
 
     func subscribeToHighlightedRange() {
         richTextContext.$highlightedRange
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setHighlightedRange(to: $0) })
@@ -89,6 +106,7 @@ private extension RichTextCoordinator {
 
     func subscribeToHighlightingStyle() {
         richTextContext.$highlightingStyle
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setHighlightingStyle(to: $0) })
@@ -97,6 +115,7 @@ private extension RichTextCoordinator {
 
     func subscribeToIsBold() {
         richTextContext.$isBold
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setStyle(.bold, to: $0) })
@@ -105,6 +124,7 @@ private extension RichTextCoordinator {
 
     func subscribeToIsEditingText() {
         richTextContext.$isEditingText
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setIsEditing(to: $0) })
@@ -113,6 +133,7 @@ private extension RichTextCoordinator {
 
     func subscribeToIsItalic() {
         richTextContext.$isItalic
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setStyle(.italic, to: $0) })
@@ -121,6 +142,7 @@ private extension RichTextCoordinator {
 
     func subscribeToIsStrikethrough() {
         richTextContext.$isStrikethrough
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setStyle(.strikethrough, to: $0) })
@@ -129,6 +151,7 @@ private extension RichTextCoordinator {
 
     func subscribeToIsUnderlined() {
         richTextContext.$isUnderlined
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setStyle(.underlined, to: $0) })
@@ -137,6 +160,7 @@ private extension RichTextCoordinator {
 
     func subscribeToSelectedRange() {
         richTextContext.$selectedRangeChange
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.setSelectedRange(to: $0) })
@@ -145,6 +169,7 @@ private extension RichTextCoordinator {
 
     func subscribeToShouldCopySelection() {
         richTextContext.$shouldCopySelection
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.copySelection($0) })
@@ -153,6 +178,7 @@ private extension RichTextCoordinator {
 
     func subscribeToShouldPasteImage() {
         richTextContext.$shouldPasteImage
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.pasteImage($0) })
@@ -161,6 +187,7 @@ private extension RichTextCoordinator {
 
     func subscribeToShouldPasteImages() {
         richTextContext.$shouldPasteImages
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.pasteImages($0) })
@@ -169,6 +196,7 @@ private extension RichTextCoordinator {
 
     func subscribeToShouldPasteText() {
         richTextContext.$shouldPasteText
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.pasteText($0) })
@@ -177,6 +205,7 @@ private extension RichTextCoordinator {
 
     func subscribeToShouldRedoLatestChange() {
         richTextContext.$shouldRedoLatestChange
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.redoLatestChange($0) })
@@ -185,14 +214,28 @@ private extension RichTextCoordinator {
 
     func subscribeToShouldUndoLatestChange() {
         richTextContext.$shouldUndoLatestChange
+            .filter { [weak self] _ in return self?.syncingContext != true }
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] in self?.undoLatestChange($0) })
             .store(in: &cancellables)
     }
+
+    func subscribeToNamedStyle() {
+        richTextContext.$namedStyle
+            .filter { [weak self] _ in return self?.syncingContext != true }
+            .sink(
+                receiveCompletion: { _ in },
+                receiveValue: { [weak self] in self?.setStyle($0) })
+            .store(in: &cancellables)
+    }
 }
 
 internal extension RichTextCoordinator {
+
+    func setContent(_ content: NSAttributedString) {
+        textView.setRichText(content)
+    }
 
     func copySelection(_ shouldCopy: Bool) {
         guard shouldCopy else { return }
@@ -279,12 +322,16 @@ internal extension RichTextCoordinator {
     func setIsEditing(to newValue: Bool) {
         if newValue == textView.isFirstResponder { return }
         if newValue {
+            #if os(iOS)
             textView.becomeFirstResponder()
+            #else
+            textView.window?.makeFirstResponder(textView)
+            #endif
         } else {
             #if os(iOS)
             textView.resignFirstResponder()
             #else
-            print("macOS currently doesn't resign first responder.")
+            //print("macOS currently doesn't resign first responder.")
             #endif
         }
     }
@@ -297,7 +344,15 @@ internal extension RichTextCoordinator {
     func setStyle(_ style: RichTextStyle, to newValue: Bool) {
         let hasStyle = textView.currentRichTextStyles.hasStyle(style)
         if newValue == hasStyle { return }
+        textView.textStorage?.beginEditing()
         textView.setCurrentRichTextStyle(style, to: newValue)
+        textView.didChangeText()
+        textView.textStorage?.endEditing()
+    }
+
+    func setStyle(_ style: RichTextNamedStyle.Proto?) {
+        guard let style else { return }
+        textView.edit(with: style)
     }
 
     func undoLatestChange(_ shouldUndo: Bool) {

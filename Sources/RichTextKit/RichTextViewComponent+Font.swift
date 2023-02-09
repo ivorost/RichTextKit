@@ -141,7 +141,7 @@ private extension RichTextViewComponent {
         var attributes = typingAttributes
         let oldFont = attributes[.font] as? FontRepresentable ?? .standardRichTextFont
         let size = oldFont.pointSize
-        let newFont = FontRepresentable(name: name, size: size)
+        let newFont = FontRepresentable(name: name, size: size) ?? .systemFont(ofSize: size)
         attributes[.font] = newFont
         typingAttributes = attributes
     }

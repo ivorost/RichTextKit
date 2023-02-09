@@ -44,6 +44,11 @@ open class RichTextView: NSTextView, RichTextViewComponent {
     }
 
     /**
+     Commands handler
+     */
+    public var commandWrapper: ((String, () -> Void) -> Void)?
+
+    /**
      The image configuration to use by the rich text view.
 
      The view uses the ``RichTextImageConfiguration/disabled``
@@ -65,6 +70,15 @@ open class RichTextView: NSTextView, RichTextViewComponent {
             return pasteImage(image, at: selectedRange.location)
         }
         super.paste(sender)
+    }
+
+    public override func doCommand(by selector: Selector) {
+        let name = NSStringFromSelector(selector)
+        guard let commandWrapper else { super.doCommand(by: selector); return }
+
+        commandWrapper(name) {
+            super.doCommand(by: selector)
+        }
     }
 
     /**

@@ -37,19 +37,24 @@ open class RichTextCoordinator: NSObject {
     public init(
         text: Binding<NSAttributedString>,
         textView: RichTextView,
+        containerView: NSView,
         richTextContext: RichTextContext
     ) {
-        textView.attributedString = text.wrappedValue
         self.text = text
         self.textView = textView
         self.richTextContext = richTextContext
+        self.containerView = containerView
         super.init()
         self.textView.delegate = self
+        self.textView.commandWrapper = commandWrapper(name:apply:)
+        richTextContext.content = text.wrappedValue
         subscribeToContextChanges()
     }
 
 
     // MARK: - Properties
+
+    private(set) var syncingContext = false
 
     /**
      The rich text context for which the coordinator is used.
@@ -60,6 +65,11 @@ open class RichTextCoordinator: NSObject {
      The rich text to edit.
      */
     public var text: Binding<NSAttributedString>
+
+    /**
+     Container
+     */
+    public private(set) var containerView: NSView
 
     /**
      The text view for which the coordinator is used.
@@ -91,6 +101,48 @@ open class RichTextCoordinator: NSObject {
      */
     internal var highlightedRangeOriginalForegroundColor: ColorRepresentable?
 
+    private func commandWrapper(name: String, apply: () -> Void) {
+        var commandName = name
+        var range: NSRange?
+
+        if let knownName = RichTextCommand.Name.create(rawValue: commandName) {
+            commandName = knownName.rawValue
+        }
+
+        let commands = richTextContext
+            .commandHandlers
+            .matches(command: commandName)
+
+        guard commands.count > 0 else {
+            apply()
+            return
+        }
+
+        textView.edit {
+            var attributedString: NSMutableAttributedString
+
+            range = textView.selectedRange()
+            attributedString = NSMutableAttributedString(attributedString: textView.attributedString())
+            textView.apply(commands.before(in: attributedString, range: &range))
+
+            let applyUpdates = commands.apply(in: attributedString, range: &range)
+
+            if applyUpdates.count > 0 {
+                textView.apply(applyUpdates)
+            }
+            else {
+                apply()
+                range = textView.selectedRange()
+                attributedString = NSMutableAttributedString(attributedString: textView.attributedString())
+            }
+
+            textView.apply(commands.after(in: attributedString, range: &range))
+        }
+
+        if let range {
+            textView.setSelectedRange(range)
+        }
+    }
 
     #if canImport(UIKit)
 
@@ -126,13 +178,54 @@ open class RichTextCoordinator: NSObject {
         syncWithTextView()
     }
 
+    public func textView(_ textView: NSTextView,
+                         willChangeSelectionFromCharacterRange oldSelectedCharRange: NSRange,
+                         toCharacterRange newSelectedCharRange: NSRange) -> NSRange {
+
+        if newSelectedCharRange.length == 0
+            && textView.attributedString().hasAttachmentCell(at: newSelectedCharRange) {
+
+            let direction = oldSelectedCharRange.location > newSelectedCharRange.location ? -1 : 1
+            let newLocation = min(textView.attributedString().length - 1,
+                                  max(1, newSelectedCharRange.location + direction))
+
+            return NSRange(location: newLocation, length: 0)
+        }
+
+        return newSelectedCharRange
+    }
+
+    public func textView(_ textView: NSTextView,
+                         shouldChangeTextIn affectedCharRange: NSRange,
+                         replacementString: String?) -> Bool {
+        return replacementString != "\t"
+    }
+
     open func textViewDidChangeSelection(_ notification: Notification) {
-        syncWithTextView()
+        guard richTextContext.selectedRange != textView.selectedRange() else { return }
+
+        syncContextWithTextView()
+
+        let location = max(0, min(textView.attributedString().length - 1, textView.selectedRange().location - 1))
+
+        if textView.attributedString().length > 0 {
+            textView.typingAttributes = textView.attributedString().attributes(at: location, effectiveRange: nil)
+        }
     }
 
     open func textDidEndEditing(_ notification: Notification) {
         richTextContext.isEditingText = false
     }
+
+    public func textView(_ textView: NSTextView,
+                         clickedOn cell: NSTextAttachmentCellProtocol,
+                         in cellFrame: NSRect,
+                         at charIndex: Int) {
+        if let cell = cell as? NSTextAttachmentClickableCell {
+            cell.clicked(textView: textView, in: cellFrame, at: charIndex)
+        }
+    }
+
     #endif
 }
 
@@ -200,7 +293,18 @@ extension RichTextCoordinator {
      purple alert warnings about how state is updated.
      */
     func syncContextWithTextViewAfterDelay() {
+        syncingContext = true
+
+        defer {
+            syncingContext = false
+        }
+
         let styles = textView.currentRichTextStyles
+
+        let content = textView.attributedString
+        if richTextContext.content != content {
+            richTextContext.content = content
+        }
 
         let range = textView.selectedRange
         if richTextContext.selectedRange != range {
@@ -272,7 +376,11 @@ extension RichTextCoordinator {
             richTextContext.textAlignment = textAlignment
         }
 
-        updateTextViewAttributesIfNeeded()
+        let namedStyle = richTextContext.namedStyles.firstNamedStyle(textView.attributedString,
+                                                                     textView.selectedRange)
+        if richTextContext.namedStyle !== namedStyle {
+            richTextContext.namedStyle = namedStyle
+        }
     }
 
     /**
@@ -282,28 +390,6 @@ extension RichTextCoordinator {
         DispatchQueue.main.async {
             self.text.wrappedValue = self.textView.attributedString
         }
-    }
-
-    /**
-     On macOS, we have to update the font and colors when we
-     move the text input cursor and there's no selected text.
-
-     The code looks very strange, but setting current values
-     to the current values will reset the text view in a way
-     that is otherwise not done correctly.
-
-     To try out the incorrect behavior, comment out the code
-     below, then change font size, colors etc. for a part of
-     the text then move the input cursor around. When you do,
-     the presented information will be correct, but when you
-     type, the last selected font, colors etc. will be used.
-     */
-    func updateTextViewAttributesIfNeeded() {
-        #if os(macOS)
-        if textView.hasSelectedRange { return }
-        let attributes = textView.currentRichTextAttributes
-        textView.setCurrentRichTextAttributes(attributes)
-        #endif
     }
 }
 #endif

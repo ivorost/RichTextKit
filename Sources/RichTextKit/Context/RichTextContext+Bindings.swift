@@ -64,4 +64,12 @@ public extension RichTextContext {
             set: { self.isUnderlined = $0 }
         )
     }
+
+    /// A ``RichTextContext/namedStyle`` binding.
+    var namedStyleBinding: Binding<RichTextNamedStyle.Proto?> {
+        Binding(
+            get: { self.namedStyle },
+            set: { self.namedStyle = $0 }
+        )
+    }
 }
