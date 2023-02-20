@@ -46,7 +46,12 @@ open class RichTextView: NSTextView, RichTextViewComponent {
     /**
      Commands handler
      */
-    public var commandWrapper: ((String, () -> Void) -> Void)?
+    public var commandWrapper: ((_ name: String, _ doCommand: () -> Void) -> Void) = { _, doCommand in doCommand() }
+
+    /**
+     Custom copy
+     */
+    public var copyWrapper: ((_ copy: () -> Void) -> Void) = { copy in copy() }
 
     /**
      The image configuration to use by the rich text view.
@@ -62,6 +67,15 @@ open class RichTextView: NSTextView, RichTextViewComponent {
     // MARK: - Overrides
 
     /**
+     Copy transformed content into the current pasteboard
+     */
+    open override func copy(_ sender: Any?) {
+        copyWrapper {
+            super.copy(sender)
+        }
+    }
+
+    /**
      Paste the current pasteboard content into the text view.
      */
     open override func paste(_ sender: Any?) {
@@ -74,7 +88,6 @@ open class RichTextView: NSTextView, RichTextViewComponent {
 
     public override func doCommand(by selector: Selector) {
         let name = NSStringFromSelector(selector)
-        guard let commandWrapper else { super.doCommand(by: selector); return }
 
         commandWrapper(name) {
             super.doCommand(by: selector)
@@ -147,6 +160,7 @@ open class RichTextView: NSTextView, RichTextViewComponent {
         let text = richText(at: range)
         pasteboard.clearContents()
         pasteboard.setString(text.string, forType: .string)
+
     }
 
     /**

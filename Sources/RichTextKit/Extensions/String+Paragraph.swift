@@ -39,6 +39,13 @@ fileprivate extension NSString {
     }
 }
 
+extension String {
+    var length: Int {
+        (self as NSString).length
+    }
+}
+
+
 public extension NSString {
     
     /**

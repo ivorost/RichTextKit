@@ -22,3 +22,24 @@ public extension RichTextNamedStyle {
         }
     }
 }
+
+public extension RichTextNamedStyle.Marker {
+    class Copy : RichTextNamedStyle.Proxy {
+        public override func apply(to string: NSMutableAttributedString,
+                                   range: inout NSRange?) -> [NSAttributedString.Update] {
+            guard let theRange = range else { return [] }
+            let listMarker = ""
+            let attachmentRange = NSMakeRange(theRange.location, 1)
+            let paragraphStyle = NSMutableParagraphStyle()
+            let list = NSTextList(markerFormat: .disc, options: 0)
+            paragraphStyle.textLists = [list]
+
+            return apply(updates: [
+                .removeAttributes(range: attachmentRange, attributes: [.attachment]),
+                .addAttributes(range: theRange, attributes: [.paragraphStyle: paragraphStyle]),
+                .replace(range: attachmentRange, string: listMarker)],
+                         to: string,
+                         range: &range)
+        }
+    }
+}

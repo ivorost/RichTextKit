@@ -24,6 +24,7 @@ import SwiftUI
 public class RichTextContext: ObservableObject {
 
     private(set) var namedStyles = [RichTextNamedStyle.Proto]()
+    private(set) var copyStyles = [RichTextNamedStyle.Proto]()
     private(set) var commandHandlers = [RichTextCommand.Proto]()
 
     /**
@@ -400,6 +401,13 @@ public extension RichTextContext {
      */
     func register(_ namedStyle: RichTextNamedStyle.Proto) {
         namedStyles.append(namedStyle)
+    }
+
+    /**
+     Register copy style transforms
+     */
+    func register(copy style: RichTextNamedStyle.Proto) {
+        copyStyles.append(style)
     }
 
     /**

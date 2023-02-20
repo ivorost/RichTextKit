@@ -46,9 +46,16 @@ open class RichTextCoordinator: NSObject {
         self.containerView = containerView
         super.init()
         self.textView.delegate = self
-        self.textView.commandWrapper = commandWrapper(name:apply:)
         richTextContext.content = text.wrappedValue
         subscribeToContextChanges()
+
+        self.textView.commandWrapper = { [weak self] name, apply in
+            self?.commandWrapper(name: name, apply: apply)
+        }
+
+        self.textView.copyWrapper = { [weak self] apply in
+            self?.copyWrapper(apply: apply)
+        }
     }
 
 
@@ -142,6 +149,15 @@ open class RichTextCoordinator: NSObject {
         if let range {
             textView.setSelectedRange(range)
         }
+    }
+
+    private func copyWrapper(apply: () -> Void) {
+        let string = NSMutableAttributedString(attributedString: textView.attributedString())
+        var range: NSRange? = NSRange(location: 0, length: string.length)
+
+        _ = richTextContext.copyStyles.apply(to: string, range: &range)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.writeObjects([string])
     }
 
     #if canImport(UIKit)
